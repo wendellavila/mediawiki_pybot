@@ -193,18 +193,18 @@ def get_pagelist(url: str, pagelist_source: str, pagelist_target: str, namespace
             params = set_request_limit(pagelist_source, pagelist_target, params, request_limit)
     return pagelist
 
-def edit_pages(csrf_token: str, pagelist: List[str], regex: str = None, append: str = None, prepend: str = None,
+def edit_pages(csrf_token: str, pagelist: List[str], substitution: str = None, append: str = None, prepend: str = None,
 skip_if: str = None, skip_ifnot: str = None, delay: int = 1, summary: str = None):
-    if regex == None and append == None and prepend == None:
+    if not pagelist or (substitution == None and append == None and prepend == None):
         raise Exception("No modifications to be performed.")
 
-    regex_list = []
-    if regex is not None and os.path.exists(regex):
-        with open(regex) as regex_file:
-            for line in regex_file.readlines():
+    substitution_list = []
+    if substitution is not None and os.path.exists(substitution):
+        with open(substitution) as substitution_file:
+            for line in substitution_file.readlines():
                 match = re.search(r'^"(.*)" "(.*)"', line)
                 if match:
-                    regex_list.append((match.group(1), match.group(2)))
+                    substitution_list.append((match.group(1), match.group(2)))
 
     total_page_count = len(pagelist)
     page_saved_count = 0
@@ -212,20 +212,25 @@ skip_if: str = None, skip_ifnot: str = None, delay: int = 1, summary: str = None
     page_count = 0
     print("Editing pages...")
     
+    # https://www.mediawiki.org/wiki/API:Revisions
     getpage_params = {
         'action': "query",
         'format': "json",
         'formatversion': 2,
         'prop': "revisions",
-        'rvprop': "content",
-        'rvslots': "*"
+        'rvprop': "ids|timestamp|content",
+        'rvslots': "main",
+        'rvlimit': 1,
+        'curtimestamp': True
     }
+    # https://www.mediawiki.org/wiki/API:Edit
     sendpage_params = {
         'action': "edit",
         'format': "json",
         'formatversion': 2,
         'title': "",
         'text': "",
+        'summary': "",
         'bot': True,
         'recreate': False,
         'nocreate': True,
@@ -234,14 +239,13 @@ skip_if: str = None, skip_ifnot: str = None, delay: int = 1, summary: str = None
     }
     
     for pagename in pagelist:
-
         getpage_params['titles'] = pagename
         request = SESSION.get(url=url, params=getpage_params)
         data = request.json()
-
-        page_content = data['query']['pages'][0]['revisions'][0]['slots']['main']['content']
+        latest_revision = data['query']['pages'][0]['revisions'][0]
+        page_content = latest_revision['slots']['main']['content']
         
-        # if page content contains "skip_if", skip page
+        #if page_content contains "skip_if", skip page
         skip = bool(re.search(skip_if, page_content)) if skip_if is not None else False
         if not skip:
             # if page content doesn't contain "skip_ifnot", skip page
@@ -261,13 +265,19 @@ skip_if: str = None, skip_ifnot: str = None, delay: int = 1, summary: str = None
             if page_content_edited == page_content:
                 page_skipped_count += 1
             else:
-                #to do: write changes to api
+                print(page_content_edited)
                 sendpage_params['title'] = pagename
                 sendpage_params['text'] = page_content_edited
-                #request = SESSION.post(url=url, data=sendpage_params)
-                #data = request.json
-                #print(data)
-                #time.sleep(delay)
+                sendpage_params['starttimestamp'] = data['curtimestamp']
+                sendpage_params['basetimestamp'] = latest_revision['timestamp']
+                sendpage_params['baserevid'] = latest_revision['revid']
+                sendpage_params['contentformat'] = latest_revision['slots']['main']['contentformat']
+                sendpage_params['contentmodel'] = latest_revision['slots']['main']['contentmodel']
+                if summary is not None:
+                    sendpage_params['summary'] = summary
+                request = SESSION.post(url=url, data=sendpage_params)
+                data = request.json()
+                time.sleep(delay)
 
             page_saved_count += 1
         page_count += 1

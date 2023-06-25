@@ -4,9 +4,9 @@ Command-line utility for performing mass edits on wikis using the MediaWiki API.
 ## How to run
 * Clone repo
 * cd into repo
-* make sh file executable:
+* make sh file executable
 > chmod +x mediawiki-pybot.sh
-* run --help for usage:
+* run --help for usage
 > ./mediawiki-pybot.sh --help
 * run sh file:
 > ./mediawiki-pybot.sh OPTIONS

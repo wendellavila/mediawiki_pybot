@@ -48,14 +48,14 @@ parser_pagelist.add_argument('-n','--namespace', action='store',
 
 parser_edit = subparsers.add_parser('edit',
     help="perform mass edits on pages from a pagelist. for options see 'mediawiki-pybot edit --help'.")
-parser_edit.add_argument('-r', '--regex', action='store',
-    help="regex string or file with regex list to be applied when editing pages")
+parser_edit.add_argument('-s', '--substitution', action='store',
+    help="path to a text file containing a list of text/regex substitutions to be applied when editing pages. See substitution_example.txt for usage.")
 parser_edit.add_argument('-a', '--append', action='store', help="string to be appended to pages when editing")
 parser_edit.add_argument('-p', '--prepend', action='store', help="string to be prepended to pages when editing")
 parser_edit.add_argument('--pagelist-path', action='store', help="loads a pagelist file from a custom location")
-parser_edit.add_argument('--skip-if', action='store', help="pages that contains given string or regex won't be edited")
+parser_edit.add_argument('--skip-if', action='store', help="pages that contain given string or regex won't be edited")
 parser_edit.add_argument('--skip-ifnot', action='store', help="pages that doesn't contain given string or regex won't be edited")
-parser_edit.add_argument('--delay', action='store', help="delay between each edit, in seconds (default=1)", type=int)
+parser_edit.add_argument('--delay', action='store', help="delay between each edit, in seconds", type=int)
 
 args = parser.parse_args(args=None if sys.argv[1:] else ['--help'])
 
@@ -110,8 +110,7 @@ else:
             if credentials['username'] == None or credentials['password'] == None or credentials['url'] == None:
                 raise Exception("Unable to login: Saved credentials partially missing. Run 'mediawiki-pybot save' to save credentials.")
             else:
-                CSRF_TOKEN = ""
-                #CSRF_TOKEN = mw_api_functions.login(credentials['username'], credentials['password'], credentials['url'])
+                CSRF_TOKEN = mw_api_functions.login(credentials['username'], credentials['password'], credentials['url'])
         else:
             raise Exception("Unable to login: No saved credentials. Run 'mediawiki-pybot save' to save credentials.")
         
@@ -120,6 +119,6 @@ else:
         with open(pagelist_path, "r") as pagelist_file:
             for line in pagelist_file.readlines():
                 pagelist.append(line)
-        mw_api_functions.edit_pages(CSRF_TOKEN, pagelist, args.regex, args.append, args.prepend, args.skip_if, args.skip_ifnot, args.delay)
+        mw_api_functions.edit_pages(CSRF_TOKEN, pagelist, args.substitution, args.append, args.prepend, args.skip_if, args.skip_ifnot, args.delay)
         
 parser.exit()
