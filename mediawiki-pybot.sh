@@ -35,15 +35,15 @@ parser_pagelist.add_argument(
     "templates: Get templates in use in a given page. " +
     "usercontribs: Get all contributions from a given user. ")
 parser_pagelist.add_argument('-t', '--target', action='store', required=True,
-    help="argument for pagelist generation (page name, category name, file path, etc.)")
+    help="argument for pagelist generation (page name, category name, etc.)")
 parser_pagelist.add_argument('--no-reset', action='store_true',
     help="use this flag to increment an existing pagelist instead of resetting it")
 parser_pagelist.add_argument('--save-path', action='store',
     help="save pagelist to a text file in a custom location")
 parser_pagelist.add_argument('-l','--limit', action='store',
-    help="limits the total number of pages to be returned", type=int)
+    help="max number of pages to be returned", type=int)
 parser_pagelist.add_argument('-n','--namespace', action='store',
-    help="limits returned pages to certain namespaces. format= \"0|1|2|3\"")
+    help="only return pages in certain namespaces. format= \"0|1|2|3\"")
 
 
 parser_edit = subparsers.add_parser('edit',
