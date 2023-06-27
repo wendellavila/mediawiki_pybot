@@ -119,11 +119,10 @@ def get_pagelist(url: str, pagelist_source: str, pagelist_target: str, namespace
             params['letype'] = "upload"
             params['lenamespace'] = 6
         elif pagelist_target.lower() == 'newpages':
-            # https://www.mediawiki.org/wiki/API:RecentChanges
-            params['list'] = "recentchanges"
-            params['rcprop'] = "title"
-            params['rctype'] = "new"
-            params['rcnamespace'] = namespace
+            # https://www.mediawiki.org/wiki/API:Logevents
+            params['list'] = "logevents"
+            params['letype'] = "create"
+            params['lenamespace'] = 0
         else:
             params['list'] = "querypage"
             params['qppage'] = pagelist_target
@@ -154,7 +153,7 @@ def get_pagelist(url: str, pagelist_source: str, pagelist_target: str, namespace
             if pagelist_target.lower() == 'newfiles' or pagelist_target.lower() == 'newimages':
                 pagelist += [page['title'] for page in data['query']['logevents']]
             elif pagelist_target.lower() == 'newpages':
-                pagelist += [page['title'] for page in data['query']['recentchanges']]
+                pagelist += [page['title'] for page in data['query']['logevents']]
             else:
                 pagelist += [page['title'] for page in data['query']['querypage']['results']]
         else:
