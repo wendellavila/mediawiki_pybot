@@ -248,57 +248,70 @@ skip_if: str = None, skip_ifnot: str = None, delay: int = None, summary: str = N
     
     for pagename in pagelist:
         getpage_params['titles'] = pagename
-        request = SESSION.get(url=url, params=getpage_params)
-        data = request.json()
-        if 'missing' in data['query']['pages'][0]:
-            page_error_count += 1
-            pages_with_error.append((pagename, "Page doesn't exist."))
-        else:
-            latest_revision = data['query']['pages'][0]['revisions'][0]
-            page_content = latest_revision['slots']['main']['content']
-
-            #if page_content contains "skip_if", skip page
-            skip = bool(re.search(skip_if, page_content)) if skip_if is not None else False
-            if not skip:
-                # if page content doesn't contain "skip_ifnot", skip page
-                skip = not bool(re.search(skip_ifnot, page_content)) if skip_ifnot is not None else False
-
-            if skip:
-                page_skipped_count += 1
+        sendpage_params['title'] = pagename
+        # navigating through redirects if redirect is found
+        while True:  
+            request = SESSION.get(url=url, params=getpage_params)
+            data = request.json()
+            if 'missing' in data['query']['pages'][0]:
+                page_error_count += 1
+                pages_with_error.append((pagename, "Page doesn't exist."))
             else:
-                page_content_edited = page_content
-                for substitution in substitution_list:
-                    page_content_edited = re.sub(substitution[0], substitution[1], page_content_edited)
-                if append is not None:
-                    page_content_edited = append + page_content_edited
-                if prepend is not None:
-                    page_content_edited = page_content_edited + prepend
+                latest_revision = data['query']['pages'][0]['revisions'][0]
+                page_content = latest_revision['slots']['main']['content']
 
-                if page_content_edited == page_content:
-                    page_skipped_count += 1
+                # checking if content is redirect
+                redirect_search = re.search("#REDIRECT \[\[(.*?)\]\]", page_content)
+                if bool(redirect_search):
+                    getpage_params['titles'] = redirect_search.group(1)
+                    sendpage_params['title'] = redirect_search.group(1)
                 else:
-                    sendpage_params['title'] = pagename
-                    sendpage_params['text'] = page_content_edited
-                    sendpage_params['starttimestamp'] = data['curtimestamp']
-                    sendpage_params['basetimestamp'] = latest_revision['timestamp']
-                    sendpage_params['baserevid'] = latest_revision['revid']
-                    sendpage_params['contentformat'] = latest_revision['slots']['main']['contentformat']
-                    sendpage_params['contentmodel'] = latest_revision['slots']['main']['contentmodel']
-                    if summary is not None:
-                        sendpage_params['summary'] = summary
-                    request = SESSION.post(url=url, data=sendpage_params)
-                    data = request.json()
-                    if("error" in data):
-                        page_error_count += 1
-                        pages_with_error.append((pagename, data['error']['info']))
-                        print(f"\nPage: {pagename}  Status: Error - {data['error']['info']}")
+                    #if page_content contains "skip_if", skip page
+                    skip = bool(re.search(skip_if, page_content)) if skip_if is not None else False
+                    if not skip:
+                        # if page content doesn't contain "skip_ifnot", skip page
+                        skip = not bool(re.search(skip_ifnot, page_content)) if skip_ifnot is not None else False
+                        
+                    if skip:
+                        page_skipped_count += 1
                     else:
-                        print(f"\nPage: {pagename}  Status: {data['edit']['result']}")
-                    if delay is not None:
-                        time.sleep(delay)
+                        page_content_edited = page_content
+                        for substitution in substitution_list:
+                            page_content_edited = re.sub(substitution[0], substitution[1], page_content_edited)
+                        if append is not None:
+                            page_content_edited = append + "\n" + page_content_edited
+                        if prepend is not None:
+                            page_content_edited = page_content_edited + "\n" + prepend
 
-                page_saved_count += 1   
-        page_count += 1
+                        if page_content_edited == page_content:
+                            page_skipped_count += 1
+                        else:
+                            sendpage_params['text'] = page_content_edited
+                            sendpage_params['starttimestamp'] = data['curtimestamp']
+                            sendpage_params['basetimestamp'] = latest_revision['timestamp']
+                            sendpage_params['baserevid'] = latest_revision['revid']
+                            sendpage_params['contentformat'] = latest_revision['slots']['main']['contentformat']
+                            sendpage_params['contentmodel'] = latest_revision['slots']['main']['contentmodel']
+                            if summary is not None:
+                                sendpage_params['summary'] = summary
+                            request = SESSION.post(url=url, data=sendpage_params)
+                            data = request.json()
+                            if("error" in data):
+                                page_error_count += 1
+                                pages_with_error.append((pagename, data['error']['info']))
+                                print(f"\nPage: {pagename}  Status: Error - {data['error']['info']}")
+                            else:
+                                print(f"\nPage: {pagename}  Status: {data['edit']['result']}")
+                            if delay is not None:
+                                time.sleep(delay)
+
+                        page_saved_count += 1
+                    #end else skip
+                    break
+                #end else redirect_search
+            #end else missing
+            page_count += 1
+        #end while
         
         print(f"Edited: {page_saved_count}  Skipped: {page_skipped_count}  Errors: {page_error_count}  " + 
               f"Remaining: {total_page_count - page_count}  Completed: {(page_count / len(pagelist) * 100):.2f}%")
