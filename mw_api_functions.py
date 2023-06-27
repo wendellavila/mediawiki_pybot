@@ -57,7 +57,9 @@ def set_request_limit(pagelist_source: str, pagelist_target: str, params: dict, 
     elif pagelist_source == 'usercontribs':
         params['uclimit'] = limit
     elif pagelist_source == 'specialpage':
-        if pagelist_target.lower() == 'newfiles' or pagelist_target.lower() == 'newpages':
+        if pagelist_target.lower() == 'newfiles':
+            params['lelimit'] = limit
+        elif pagelist_target.lower() == 'newpages':
             params['rclimit'] = limit
         else:
             params['qplimit'] = limit
@@ -112,11 +114,12 @@ def get_pagelist(url: str, pagelist_source: str, pagelist_target: str, namespace
         # https://www.mediawiki.org/wiki/API:Querypage
         pagelist_target = pagelist_target[8:] if pagelist_target[0:8].lower() == "special:" else pagelist_target
         if pagelist_target.lower() == 'newfiles':
-            params['list'] = "recentchanges"
-            params['rcprop'] = "title"
-            params['rctype'] = "log"
-            params['rcnamespace'] = 6
+            # https://www.mediawiki.org/wiki/API:Logevents
+            params['list'] = "logevents"
+            params['letype'] = "upload"
+            params['lenamespace'] = 6
         elif pagelist_target.lower() == 'newpages':
+            # https://www.mediawiki.org/wiki/API:RecentChanges
             params['list'] = "recentchanges"
             params['rcprop'] = "title"
             params['rctype'] = "new"
@@ -148,7 +151,9 @@ def get_pagelist(url: str, pagelist_source: str, pagelist_target: str, namespace
         elif pagelist_source == 'usercontribs':
             pagelist += [page['title'] for page in data['query']['usercontribs']]
         elif pagelist_source == 'specialpage':
-            if pagelist_target.lower() == 'newfiles' or pagelist_target.lower() == 'newimages' or pagelist_target.lower() == 'newpages':
+            if pagelist_target.lower() == 'newfiles' or pagelist_target.lower() == 'newimages':
+                pagelist += [page['title'] for page in data['query']['logevents']]
+            elif pagelist_target.lower() == 'newpages':
                 pagelist += [page['title'] for page in data['query']['recentchanges']]
             else:
                 pagelist += [page['title'] for page in data['query']['querypage']['results']]
@@ -170,6 +175,8 @@ def get_pagelist(url: str, pagelist_source: str, pagelist_target: str, namespace
             params.update(data['qpoffset'])
         elif 'rccontinue' in data:
             params.update(data['rccontinue'])
+        elif 'lecontinue' in data:
+            params.update(data['lecontinue'])
         elif 'lhcontinue' in data:
             params.update(data['lhcontinue'])
         elif 'fucontinue' in data:
@@ -193,8 +200,8 @@ def get_pagelist(url: str, pagelist_source: str, pagelist_target: str, namespace
             params = set_request_limit(pagelist_source, pagelist_target, params, request_limit)
     return pagelist
 
-def edit_pages(csrf_token: str, pagelist: List[str], substitution_path: str = None, append: str = None, prepend: str = None,
-skip_if: str = None, skip_ifnot: str = None, delay: int = 1, summary: str = None):
+def edit_pages(csrf_token: str, url: str, pagelist: List[str], substitution_path: str = None, append: str = None, prepend: str = None,
+skip_if: str = None, skip_ifnot: str = None, delay: int = None, summary: str = None):
     if substitution_path == None and append == None and prepend == None:
         raise Exception("No modifications to be performed.")
 
@@ -285,15 +292,16 @@ skip_if: str = None, skip_ifnot: str = None, delay: int = 1, summary: str = None
                     if("error" in data):
                         page_error_count += 1
                         pages_with_error.append((pagename, data['error']['info']))
-                        print(f"Page: {pagename}  Status: Error - {data['error']['info']}")
+                        print(f"\nPage: {pagename}  Status: Error - {data['error']['info']}")
                     else:
-                        print(f"Page: {pagename}  Status: {data['edit']['result']}")
-                    time.sleep(delay)
+                        print(f"\nPage: {pagename}  Status: {data['edit']['result']}")
+                    if delay is not None:
+                        time.sleep(delay)
 
                 page_saved_count += 1   
         page_count += 1
         
-        print(f"Pages edited: {page_saved_count}  Pages skipped: {page_skipped_count}  Pages with errors: {page_error_count}  " + 
+        print(f"Edited: {page_saved_count}  Skipped: {page_skipped_count}  Errors: {page_error_count}  " + 
               f"Remaining: {total_page_count - page_count}  Completed: {(page_count / len(pagelist) * 100):.2f}%")
     if pages_with_error:
         print("Pages with errors:")

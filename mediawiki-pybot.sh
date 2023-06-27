@@ -52,6 +52,7 @@ parser_edit.add_argument('-s', '--substitution', action='store',
     help="path to a text file containing a list of text/regex substitutions to be applied when editing pages. See substitution_example.txt for usage.")
 parser_edit.add_argument('-a', '--append', action='store', help="string to be appended to pages when editing")
 parser_edit.add_argument('-p', '--prepend', action='store', help="string to be prepended to pages when editing")
+parser_edit.add_argument('--summary', action='store', help="edit summary")
 parser_edit.add_argument('--pagelist-path', action='store', help="loads a pagelist file from a custom location")
 parser_edit.add_argument('--skip-if', action='store', help="pages that contain given string or regex won't be edited")
 parser_edit.add_argument('--skip-ifnot', action='store', help="pages that doesn't contain given string or regex won't be edited")
@@ -96,7 +97,8 @@ else:
         else:
             url = None
         with open(pagelist_path, pagelist_mode) as pagelist_file:
-            pagelist = mw_api_functions.get_pagelist(url, args.source, args.target, args.namespace, args.limit)
+            pagelist = mw_api_functions.get_pagelist(url=url, pagelist_source=args.source, pagelist_target=args.target,
+            namespace=args.namespace, limit=args.limit)
             for pagename in pagelist:
                 pagelist_file.write("{}\n".format(pagename))
             if len(pagelist) == 0:
@@ -110,7 +112,7 @@ else:
             if credentials['username'] == None or credentials['password'] == None or credentials['url'] == None:
                 raise Exception("Unable to login: Saved credentials partially missing. Run 'mediawiki-pybot save' to save credentials.")
             else:
-                CSRF_TOKEN = mw_api_functions.login(credentials['username'], credentials['password'], credentials['url'])
+                CSRF_TOKEN = mw_api_functions.login(username=credentials['username'], password=credentials['password'], url=credentials['url'])
         else:
             raise Exception("Unable to login: No saved credentials. Run 'mediawiki-pybot save' to save credentials.")
         
@@ -119,6 +121,7 @@ else:
         with open(pagelist_path, "r") as pagelist_file:
             for line in pagelist_file.readlines():
                 pagelist.append(line)
-        mw_api_functions.edit_pages(CSRF_TOKEN, pagelist, args.substitution, args.append, args.prepend, args.skip_if, args.skip_ifnot, args.delay)
+        mw_api_functions.edit_pages(csrf_token=CSRF_TOKEN, url=credentials['url'], pagelist=pagelist, summary=args.summary, substitution_path=args.substitution, append=args.append,
+        prepend=args.prepend, skip_if=args.skip_if, skip_ifnot=args.skip_ifnot, delay=args.delay)
         
 parser.exit()
