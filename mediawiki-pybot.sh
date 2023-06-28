@@ -95,7 +95,7 @@ else:
                 credentials = json.load(credentials_file)
                 url = credentials['url']
         else:
-            url = None
+            raise Exception("Unable to get pages: No saved url. Run 'mediawiki-pybot save' to save credentials.")
         with open(pagelist_path, pagelist_mode) as pagelist_file:
             pagelist = mw_api_functions.get_pagelist(url=url, pagelist_source=args.source, pagelist_target=args.target,
             namespace=args.namespace, limit=args.limit)
