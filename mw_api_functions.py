@@ -256,6 +256,7 @@ skip_if: str = None, skip_ifnot: str = None, delay: int = None, summary: str = N
             if 'missing' in data['query']['pages'][0]:
                 page_error_count += 1
                 pages_with_error.append((pagename, "Page doesn't exist."))
+                break
             else:
                 latest_revision = data['query']['pages'][0]['revisions'][0]
                 page_content = latest_revision['slots']['main']['content']
@@ -310,9 +311,9 @@ skip_if: str = None, skip_ifnot: str = None, delay: int = None, summary: str = N
                     break
                 #end else redirect_search
             #end else missing
-            page_count += 1
         #end while
-        
+        page_count += 1
+
         print(f"Edited: {page_saved_count}  Skipped: {page_skipped_count}  Errors: {page_error_count}  " + 
               f"Remaining: {total_page_count - page_count}  Completed: {(page_count / len(pagelist) * 100):.2f}%")
     if pages_with_error:
