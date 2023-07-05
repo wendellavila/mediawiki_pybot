@@ -238,7 +238,7 @@ skip_if: str = None, skip_ifnot: str = None, delay: int = None, summary: str = N
         'formatversion': 2,
         'title': "",
         'text': "",
-        'summary': "",
+        'summary': summary if summary is not None else "",
         'bot': True,
         'recreate': False,
         'nocreate': True,
@@ -293,8 +293,6 @@ skip_if: str = None, skip_ifnot: str = None, delay: int = None, summary: str = N
                             sendpage_params['baserevid'] = latest_revision['revid']
                             sendpage_params['contentformat'] = latest_revision['slots']['main']['contentformat']
                             sendpage_params['contentmodel'] = latest_revision['slots']['main']['contentmodel']
-                            if summary is not None:
-                                sendpage_params['summary'] = summary
                             request = SESSION.post(url=url, data=sendpage_params)
                             data = request.json()
                             if("error" in data):
@@ -316,6 +314,52 @@ skip_if: str = None, skip_ifnot: str = None, delay: int = None, summary: str = N
 
         print(f"Edited: {page_saved_count}  Skipped: {page_skipped_count}  Errors: {page_error_count}  " + 
               f"Remaining: {total_page_count - page_count}  Completed: {(page_count / len(pagelist) * 100):.2f}%")
+    if pages_with_error:
+        print("Pages with errors:")
+        for (pagename, error) in pages_with_error:
+            print(f"{pagename}:  Error: {error}")
+
+def create_pages(csrf_token: str, url: str, pagelist: List[str], content: str, delay: int = None, summary: str = None):
+    # https://www.mediawiki.org/wiki/API:Edit
+    sendpage_params = {
+        'action': "edit",
+        'format': "json",
+        'formatversion': 2,
+        'title': "",
+        'text': "",
+        'summary': summary if summary is not None else "",
+        'bot': True,
+        'watchlist': "watch",
+        'token': csrf_token
+    }
+
+    total_page_count = len(pagelist)
+    page_saved_count = 0
+    page_count = 0
+    page_error_count = 0
+    pages_with_error = []
+
+    print("Creating pages...")
+    for pagename in pagelist:
+        sendpage_params['title'] = pagename
+        sendpage_params['text'] = content
+
+        request = SESSION.post(url=url, data=sendpage_params)
+        data = request.json()
+
+        if("error" in data):
+            page_error_count += 1
+            pages_with_error.append((pagename, data['error']['info']))
+            print(f"\nPage: {pagename}  Status: Error - {data['error']['info']}")
+        else:
+            print(f"\nPage: {pagename}  Status: {data['edit']['result']}")
+            page_saved_count += 1
+        if delay is not None:
+            time.sleep(delay)
+        page_count += 1
+        print(f"Created: {page_saved_count}  Errors: {page_error_count}  " + 
+              f"Remaining: {total_page_count - page_count}  Completed: {(page_count / len(pagelist) * 100):.2f}%")
+    
     if pages_with_error:
         print("Pages with errors:")
         for (pagename, error) in pages_with_error:

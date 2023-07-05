@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser(
     prog='mediawiki-pybot',
     description='Command-line utility for performing mass edits on wikis using the MediaWiki API. Written in Python.')
 
-subparsers = parser.add_subparsers(metavar='operation', help="allowed values: {save, pagelist, edit}", dest='operation')
+subparsers = parser.add_subparsers(metavar='operation', help="allowed values: {save, pagelist, edit, create}", dest='operation')
 
 parser_save = subparsers.add_parser('save', help="stores login credentials locally. for options see 'mediawiki-pybot save --help'.")
 parser_save.add_argument('-u', '--username', action='store', help="bot account username")
@@ -56,7 +56,13 @@ parser_edit.add_argument('--summary', action='store', help="edit summary")
 parser_edit.add_argument('--pagelist-path', action='store', help="loads a pagelist file from a custom location")
 parser_edit.add_argument('--skip-if', action='store', help="pages that contain given string or regex won't be edited")
 parser_edit.add_argument('--skip-ifnot', action='store', help="pages that doesn't contain given string or regex won't be edited")
-parser_edit.add_argument('--delay', action='store', help="delay between each edit, in seconds", type=int)
+parser_edit.add_argument('-d', '--delay', action='store', help="delay between each edit, in seconds", type=int)
+
+parser_create = subparsers.add_parser('create', help="mass create pages. for options see 'mediawiki-pybot create --help'.")
+parser_create.add_argument('-c', '--content', action='store', help="content to be added to each page", required=True)
+parser_create.add_argument('-p', '--pagelist-path', action='store', help="loads a pagelist file from a custom location")
+parser_create.add_argument('-s', '--summary', action='store', help="edit summary")
+parser_create.add_argument('-d', '--delay', action='store', help="delay between each edit, in seconds", type=int)
 
 args = parser.parse_args(args=None if sys.argv[1:] else ['--help'])
 
@@ -123,5 +129,22 @@ else:
                 pagelist.append(line)
         mw_api_functions.edit_pages(csrf_token=CSRF_TOKEN, url=credentials['url'], pagelist=pagelist, summary=args.summary, substitution_path=args.substitution, append=args.append,
         prepend=args.prepend, skip_if=args.skip_if, skip_ifnot=args.skip_ifnot, delay=args.delay)
+    elif args.operation == "create":
+        if os.path.exists("credentials.json"):
+            with open('credentials.json') as credentials_file:
+                credentials = json.load(credentials_file)
+            if credentials['username'] == None or credentials['password'] == None or credentials['url'] == None:
+                raise Exception("Unable to login: Saved credentials partially missing. Run 'mediawiki-pybot save' to save credentials.")
+            else:
+                CSRF_TOKEN = mw_api_functions.login(username=credentials['username'], password=credentials['password'], url=credentials['url'])
+        else:
+            raise Exception("Unable to login: No saved credentials. Run 'mediawiki-pybot save' to save credentials.")
+
+        pagelist_path = args.pagelist_path if args.pagelist_path is not None else "pagelist.txt"
+        pagelist = []
+        with open(pagelist_path, "r") as pagelist_file:
+            for line in pagelist_file.readlines():
+                pagelist.append(line)
+        mw_api_functions.create_pages(csrf_token=CSRF_TOKEN, url=credentials['url'], content=args.content, pagelist=pagelist, summary=args.summary, delay=args.delay)
         
 parser.exit()
