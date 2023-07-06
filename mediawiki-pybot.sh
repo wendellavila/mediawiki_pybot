@@ -63,7 +63,7 @@ parser_create.add_argument('-c', '--content', action='store', help="content to b
 parser_create.add_argument('-p', '--pagelist-path', action='store', help="loads a pagelist file from a custom location")
 parser_create.add_argument('-s', '--summary', nargs='?', const="", action='store', help="edit summary")
 parser_create.add_argument('-d', '--delay', action='store', help="delay between each edit, in seconds", type=int)
-parser_create.add_argument('-d', '--create-only', action='store', nargs='?', const=True, help="whether or not to skip the page if it already exists. default= True", type=bool)
+parser_create.add_argument('--create-only', action='store', nargs='?', const=True, default=True, help="whether or not to skip the page if it already exists. default= True", type=bool)
 
 args = parser.parse_args(args=None if sys.argv[1:] else ['--help'])
 
