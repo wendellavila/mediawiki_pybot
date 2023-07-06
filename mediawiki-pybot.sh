@@ -52,7 +52,7 @@ parser_edit.add_argument('-s', '--substitution', action='store',
     help="path to a text file containing a list of text/regex substitutions to be applied when editing pages. See substitution_example.txt for usage.")
 parser_edit.add_argument('-a', '--append', action='store', help="string to be appended to pages when editing")
 parser_edit.add_argument('-p', '--prepend', action='store', help="string to be prepended to pages when editing")
-parser_edit.add_argument('--summary', action='store', help="edit summary")
+parser_edit.add_argument('--summary', nargs='?', const="", action='store', help="edit summary")
 parser_edit.add_argument('--pagelist-path', action='store', help="loads a pagelist file from a custom location")
 parser_edit.add_argument('--skip-if', action='store', help="pages that contain given string or regex won't be edited")
 parser_edit.add_argument('--skip-ifnot', action='store', help="pages that doesn't contain given string or regex won't be edited")
@@ -61,8 +61,9 @@ parser_edit.add_argument('-d', '--delay', action='store', help="delay between ea
 parser_create = subparsers.add_parser('create', help="mass create pages. for options see 'mediawiki-pybot create --help'.")
 parser_create.add_argument('-c', '--content', action='store', help="content to be added to each page", required=True)
 parser_create.add_argument('-p', '--pagelist-path', action='store', help="loads a pagelist file from a custom location")
-parser_create.add_argument('-s', '--summary', action='store', help="edit summary")
+parser_create.add_argument('-s', '--summary', nargs='?', const="", action='store', help="edit summary")
 parser_create.add_argument('-d', '--delay', action='store', help="delay between each edit, in seconds", type=int)
+parser_create.add_argument('-d', '--create-only', action='store', nargs='?', const=True, help="whether or not to skip the page if it already exists. default= True", type=bool)
 
 args = parser.parse_args(args=None if sys.argv[1:] else ['--help'])
 
@@ -145,6 +146,6 @@ else:
         with open(pagelist_path, "r") as pagelist_file:
             for line in pagelist_file.readlines():
                 pagelist.append(line)
-        mw_api_functions.create_pages(csrf_token=CSRF_TOKEN, url=credentials['url'], content=args.content, pagelist=pagelist, summary=args.summary, delay=args.delay)
+        mw_api_functions.create_pages(csrf_token=CSRF_TOKEN, url=credentials['url'], content=args.content, pagelist=pagelist, summary=args.summary, delay=args.delay, create_only=args.create_only)
         
 parser.exit()

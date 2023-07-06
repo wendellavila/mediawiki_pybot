@@ -253,6 +253,8 @@ skip_if: str = None, skip_ifnot: str = None, delay: int = None, summary: str = N
         while True:  
             request = SESSION.get(url=url, params=getpage_params)
             data = request.json()
+            if 'error' in data:
+                raise Exception(data['error'])
             if 'missing' in data['query']['pages'][0]:
                 page_error_count += 1
                 pages_with_error.append((pagename, "Page doesn't exist."))
@@ -319,7 +321,7 @@ skip_if: str = None, skip_ifnot: str = None, delay: int = None, summary: str = N
         for (pagename, error) in pages_with_error:
             print(f"{pagename}:  Error: {error}")
 
-def create_pages(csrf_token: str, url: str, pagelist: List[str], content: str, delay: int = None, summary: str = None):
+def create_pages(csrf_token: str, url: str, pagelist: List[str], content: str, delay: int = None, summary: str = None, create_only: bool = True):
     # https://www.mediawiki.org/wiki/API:Edit
     sendpage_params = {
         'action': "edit",
@@ -329,6 +331,7 @@ def create_pages(csrf_token: str, url: str, pagelist: List[str], content: str, d
         'text': "",
         'summary': summary if summary is not None else "",
         'bot': True,
+        'createonly': create_only,
         'watchlist': "watch",
         'token': csrf_token
     }
