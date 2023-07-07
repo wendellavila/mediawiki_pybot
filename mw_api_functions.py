@@ -1,11 +1,19 @@
+import functools
 import os
 import json
 import re
 import requests
 import time
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 from typing import List
 
 SESSION = requests.Session()
+retries = Retry(total=5,
+                status_forcelist=[429, 500, 502, 503, 504])
+
+SESSION.mount('http://', HTTPAdapter(max_retries=retries))
+SESSION.request = functools.partial(SESSION.request, timeout=30)
 
 def login(username: str, password: str, url:str) -> str:
     # Retrieve login token first
@@ -305,8 +313,7 @@ skip_if: str = None, skip_ifnot: str = None, delay: int = None, summary: str = N
                                 print(f"\nPage: {pagename}  Status: {data['edit']['result']}")
                             if delay is not None:
                                 time.sleep(delay)
-
-                        page_saved_count += 1
+                            page_saved_count += 1
                     #end else skip
                     break
                 #end else redirect_search
