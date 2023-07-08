@@ -14,7 +14,7 @@ SESSION = requests.Session()
 SESSION.request = functools.partial(SESSION.request, timeout=120)
 
 def get_token(credentials_path: str) -> str:
-    credentials = utils.read_credentials(read_credentials)
+    credentials = utils.read_credentials(credentials_path)
     if credentials['username'] == None or credentials['password'] == None or credentials['url'] == None:
         raise Exception("Unable to login: Saved credentials partially missing. Run 'mediawiki-pybot save' to save credentials.")
     else:
@@ -22,7 +22,7 @@ def get_token(credentials_path: str) -> str:
         return CSRF_TOKEN
 
 def get_url(credentials_path: str) -> str:
-    credentials = utils.read_credentials(read_credentials)
+    credentials = utils.read_credentials(credentials_path)
     if credentials['url'] == None:
         raise Exception("Unable to login: No saved url. Run 'mediawiki-pybot save' to save credentials.")
     else: 
