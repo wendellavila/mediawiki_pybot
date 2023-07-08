@@ -16,6 +16,13 @@ def write_pagelist(pagelist: List[str], pagelist_path: str, pagelist_mode: str):
         for pagename in pagelist:
             pagelist_file.write("{}\n".format(pagename))
 
+def read_credentials(credentials_path: str) -> dict:
+    if os.path.exists(credentials_path):
+        with open(credentials_path) as credentials_file:
+            credentials = json.load(credentials_file)
+    else:
+        raise Exception("Unable to login: No saved credentials. Run 'mediawiki-pybot save' to save credentials.")
+
 def save_credentials(credentials_path: str, username: str, password: str, url: str):
     if os.path.exists(credentials_path):
         with open(credentials_path) as input_file:

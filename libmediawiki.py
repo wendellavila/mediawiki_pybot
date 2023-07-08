@@ -14,28 +14,19 @@ SESSION = requests.Session()
 SESSION.request = functools.partial(SESSION.request, timeout=120)
 
 def get_token(credentials_path: str) -> str:
-    if os.path.exists(credentials_path):
-        with open(credentials_path) as credentials_file:
-            credentials = json.load(credentials_file)
-        if credentials['username'] == None or credentials['password'] == None or credentials['url'] == None:
-            raise Exception("Unable to login: Saved credentials partially missing. Run 'mediawiki-pybot save' to save credentials.")
-        else:
-            CSRF_TOKEN = login(username=credentials['username'], password=credentials['password'],url=credentials['url'])
-            return CSRF_TOKEN
+    credentials = utils.read_credentials(read_credentials)
+    if credentials['username'] == None or credentials['password'] == None or credentials['url'] == None:
+        raise Exception("Unable to login: Saved credentials partially missing. Run 'mediawiki-pybot save' to save credentials.")
     else:
-        raise Exception("Unable to login: No saved credentials. Run 'mediawiki-pybot save' to save credentials.")
+        CSRF_TOKEN = login(username=credentials['username'], password=credentials['password'],url=credentials['url'])
+        return CSRF_TOKEN
 
 def get_url(credentials_path: str) -> str:
-    if os.path.exists(credentials_path):
-        with open(credentials_path) as credentials_file:
-            credentials = json.load(credentials_file)
-            if credentials['url'] == None:
-                raise Exception("Unable to login: No saved url. Run 'mediawiki-pybot save' to save credentials.")
-            else:
-                URL = credentials['url']
-                return URL
-    else:
-        raise Exception("Unable to get pages: No saved credentials. Run 'mediawiki-pybot save' to save credentials.")
+    credentials = utils.read_credentials(read_credentials)
+    if credentials['url'] == None:
+        raise Exception("Unable to login: No saved url. Run 'mediawiki-pybot save' to save credentials.")
+    else: 
+        return credentials['url']
 
 def login(username: str, password: str, url:str) -> str:
     # Retrieve login token first
