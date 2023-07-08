@@ -1,9 +1,13 @@
 #!/usr/bin/env python
+
+# standard library imports
 import argparse
-import libmediawiki
 import json
 import os
 import sys
+
+#custom modules
+import libmediawiki
 import utils
 
 parser = argparse.ArgumentParser(
@@ -78,14 +82,20 @@ if len(sys.argv)==2:
     else:
         parser.print_help()
 else:
+    DIR_PATH = os.path.dirname(os.path.realpath(__file__))
+    DEFAULT_PATHS = {
+        'credentials': DIR_PATH + "/cache/credentials.json",
+        'pagelist': DIR_PATH + "/cache/pagelist.txt"
+    }
+    
     #performing actions based on args
     if args.operation == "save":
-        utils.save_credentials("credentials.json", username=args.username, password=args.password, url=args.url)
+        utils.save_credentials(DEFAULT_PATHS['credentials'], username=args.username, password=args.password, url=args.url)
         print("Credentials saved successfully.")
     elif args.operation == "pagelist":
-        PAGELIST_PATH = args.save_path if args.save_path is not None else "pagelist.txt"
+        PAGELIST_PATH = args.save_path if args.save_path is not None else DEFAULT_PATHS['pagelist']
         PAGELIST_MODE = "a" if args.no_reset else "w"
-        URL = libmediawiki.get_url("credentials.json")
+        URL = libmediawiki.get_url(DEFAULT_PATHS['credentials'])
         pagelist = libmediawiki.generate_pagelist(url=URL, pagelist_source=args.source, pagelist_target=args.target,
         namespace=args.namespace, limit=args.limit)
         if len(pagelist) == 0:
@@ -94,15 +104,15 @@ else:
             utils.write_pagelist(pagelist, PAGELIST_PATH, PAGELIST_MODE)
             print(f"{args.source.capitalize()}:{args.target} - {len(pagelist)} pages added to pagelist.")
     elif args.operation == "edit":
-        CSRF_TOKEN = libmediawiki.get_token("credentials.json")
-        URL = libmediawiki.get_url("credentials.json")
-        pagelist_path = args.pagelist_path if args.pagelist_path is not None else "pagelist.txt"
-        libmediawiki.edit_pages(csrf_token=CSRF_TOKEN, url=URL, pagelist_path=pagelist_path, summary=args.summary, substitution_path=args.substitution, append=args.append,
+        CSRF_TOKEN = libmediawiki.get_token(DEFAULT_PATHS['credentials'])
+        URL = libmediawiki.get_url(DEFAULT_PATHS['credentials'])
+        PAGELIST_PATH = args.pagelist_path if args.pagelist_path is not None else DEFAULT_PATHS['pagelist']
+        libmediawiki.edit_pages(csrf_token=CSRF_TOKEN, url=URL, pagelist_path=PAGELIST_PATH, summary=args.summary, substitution_path=args.substitution, append=args.append,
         prepend=args.prepend, skip_if=args.skip_if, skip_ifnot=args.skip_ifnot, delay=args.delay)
     elif args.operation == "create":
-        CSRF_TOKEN = libmediawiki.get_token("credentials.json")
-        URL = libmediawiki.get_url("credentials.json")
-        pagelist_path = args.pagelist_path if args.pagelist_path is not None else "pagelist.txt"
-        libmediawiki.create_pages(csrf_token=CSRF_TOKEN, url=URL, content=args.content, pagelist_path=pagelist_path, summary=args.summary, delay=args.delay)
+        CSRF_TOKEN = libmediawiki.get_token(DEFAULT_PATHS['credentials'])
+        URL = libmediawiki.get_url(DEFAULT_PATHS['credentials'])
+        PAGELIST_PATH = args.pagelist_path if args.pagelist_path is not None else DEFAULT_PATHS['pagelist']
+        libmediawiki.create_pages(csrf_token=CSRF_TOKEN, url=URL, content=args.content, pagelist_path=PAGELIST_PATH, summary=args.summary, delay=args.delay)
         
 parser.exit()

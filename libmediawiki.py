@@ -1,13 +1,16 @@
+# standard library imports
 import functools
 import os
 import json
 import re
 import requests
 import time
-import utils
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+#from requests.adapters import HTTPAdapter
+#from requests.packages.urllib3.util.retry import Retry
 from typing import List
+
+# custom modules
+import utils
 
 SESSION = requests.Session()
 # retries = Retry(total=5,status_forcelist=[429, 500, 502, 503, 504])
