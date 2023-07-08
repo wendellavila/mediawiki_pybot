@@ -1,5 +1,6 @@
 # standard library imports
 import json
+import os
 from typing import List
 
 def read_pagelist(pagelist_path: str) -> List[str]:
