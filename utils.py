@@ -20,6 +20,7 @@ def read_credentials(credentials_path: str) -> dict:
     if os.path.exists(credentials_path):
         with open(credentials_path) as credentials_file:
             credentials = json.load(credentials_file)
+            return credentials
     else:
         raise Exception("Unable to login: No saved credentials. Run 'mediawiki-pybot save' to save credentials.")
 
