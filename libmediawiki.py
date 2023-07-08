@@ -5,18 +5,12 @@ import json
 import re
 import requests
 import time
-#from requests.adapters import HTTPAdapter
-#from requests.packages.urllib3.util.retry import Retry
 from typing import List
 
 # custom modules
 import utils
 
 SESSION = requests.Session()
-# retries = Retry(total=5,status_forcelist=[429, 500, 502, 503, 504])
-
-# for protocol in 'http://', 'https://':
-#     SESSION.mount(protocol, HTTPAdapter(max_retries=retries))
 SESSION.request = functools.partial(SESSION.request, timeout=120)
 
 def get_token(credentials_path: str) -> str:
@@ -51,8 +45,20 @@ def login(username: str, password: str, url:str) -> str:
         'type':"login",
         'format':"json"
     }
-    request = SESSION.get(url=url, params=LOGIN_TOKEN_PARAMS)
+
+    # retry when request timeout is reached 
+    for i in range(0, 3):
+        try:
+            request = SESSION.get(url=url, params=LOGIN_TOKEN_PARAMS)
+        except requests.Timeout:
+            print(f"Connection with API failed. Retrying. ({i+1} of 3)")
+        else:
+            break
+    else:
+        raise Exception("Request reached timeout while fetching data. Check your connection and try again.")
+
     data = request.json()
+
     if 'error' in data:
         raise Exception(data['error'])
 
@@ -68,8 +74,20 @@ def login(username: str, password: str, url:str) -> str:
         'lgtoken': LOGIN_TOKEN,
         'format': "json"
     }
-    request = SESSION.post(url, data=LOGIN_PARAMS)
+
+    # retry when request timeout is reached 
+    for i in range(0, 3):
+        try:
+            request = SESSION.post(url, data=LOGIN_PARAMS)
+        except requests.Timeout:
+            print(f"Connection with API failed. Retrying. ({i+1} of 3)")
+        else:
+            break
+    else:
+        raise Exception("Request reached timeout while fetching data. Check your connection and try again.")
+
     data = request.json()
+
     if 'error' in data:
         raise Exception(data['error'])
 
@@ -84,7 +102,18 @@ def login(username: str, password: str, url:str) -> str:
         "meta": "tokens",
         "format": "json"
     }
-    request = SESSION.get(url=url, params=CSRF_PARAMS)
+
+    # retry when request timeout is reached 
+    for i in range(0, 3):
+        try:
+            request = SESSION.get(url=url, params=CSRF_PARAMS)
+        except requests.Timeout:
+            print(f"Connection with API failed. Retrying. ({i+1} of 3)")
+        else:
+            break
+    else:
+        raise Exception("Request reached timeout while fetching data. Check your connection and try again.")
+
     data = request.json()
     CSRF_TOKEN = data['query']['tokens']['csrftoken']
     
@@ -181,64 +210,85 @@ def generate_pagelist(url: str, pagelist_source: str, pagelist_target: str, name
 
     pagelist = []
     print("Getting pagelist...")
-    while request_limit > 0:
-        request = SESSION.get(url=url, params=params)
-        data = request.json()
-        if 'error' in data:
-            raise Exception(data['error'])
-        
-        if pagelist_source == 'category':
-            pagelist += [page['title'] for page in data['query']['categorymembers']]
-        elif pagelist_source == 'usercontribs':
-            pagelist += [page['title'] for page in data['query']['usercontribs']]
-        elif pagelist_source == 'specialpage':
-            if pagelist_target.lower() == 'newfiles' or pagelist_target.lower() == 'newimages':
-                pagelist += [page['title'] for page in data['query']['logevents']]
-            elif pagelist_target.lower() == 'newpages':
-                pagelist += [page['title'] for page in data['query']['logevents']]
-            else:
-                pagelist += [page['title'] for page in data['query']['querypage']['results']]
-        else:
-            # QUERY_PROPS
-            NAMESPACES = [int(ns) for ns in namespace.split('|') if ns.strip().isdigit()] if namespace != "*" else []
-            if pagelist_source in data['query']['pages'][0]:
-                for page in data['query']['pages'][0][pagelist_source]:
-                    if namespace == "*":
-                        pagelist.append(page['title'])
-                    else:
-                        if page['ns'] in NAMESPACES:
-                            pagelist.append(page['title'])
-        
-        # https://www.mediawiki.org/wiki/API:Continue
-        if 'continue' in data:
-            params.update(data['continue'])
-        elif 'qpoffset' in data:
-            params.update(data['qpoffset'])
-        elif 'rccontinue' in data:
-            params.update(data['rccontinue'])
-        elif 'lecontinue' in data:
-            params.update(data['lecontinue'])
-        elif 'lhcontinue' in data:
-            params.update(data['lhcontinue'])
-        elif 'fucontinue' in data:
-            params.update(data['fucontinue'])
-        elif 'imcontinue' in data:
-            params.update(data['imcontinue'])
-        elif 'plcontinue' in data:
-            params.update(data['plcontinue'])
-        elif 'rdcontinue' in data:
-            params.update(data['rdcontinue'])
-        elif 'tlcontinue' in data:
-            params.update(data['tlcontinue'])
-        elif 'ticontinue' in data:
-            params.update(data['ticontinue'])
-        else:
-            break
+    try:
+        while request_limit > 0:
 
-        # reducing request limit when total of pages gets closer to user provided limit
-        if limit is not None:
-            request_limit = (limit - len(pagelist)) if (limit - len(pagelist)) < 500 else 500
-            params = set_api_request_limit(pagelist_source, pagelist_target, params, request_limit)
+            # retry when request timeout is reached 
+            for i in range(0, 3):
+                try:
+                    request = SESSION.get(url=url, params=params)
+                except requests.Timeout:
+                    print(f"Connection with API failed. Retrying. ({i+1} of 3)")
+                else:
+                    break
+            else:
+                raise Exception("Request reached timeout while fetching data. Check your connection and try again.")
+            
+            data = request.json()
+            if 'error' in data:
+                raise Exception(data['error'])
+            
+            if pagelist_source == 'category':
+                pagelist += [page['title'] for page in data['query']['categorymembers']]
+            elif pagelist_source == 'usercontribs':
+                pagelist += [page['title'] for page in data['query']['usercontribs']]
+            elif pagelist_source == 'specialpage':
+                if pagelist_target.lower() == 'newfiles' or pagelist_target.lower() == 'newimages':
+                    pagelist += [page['title'] for page in data['query']['logevents']]
+                elif pagelist_target.lower() == 'newpages':
+                    pagelist += [page['title'] for page in data['query']['logevents']]
+                else:
+                    pagelist += [page['title'] for page in data['query']['querypage']['results']]
+            else:
+                # QUERY_PROPS
+                NAMESPACES = [int(ns) for ns in namespace.split('|') if ns.strip().isdigit()] if namespace != "*" else []
+                if pagelist_source in data['query']['pages'][0]:
+                    for page in data['query']['pages'][0][pagelist_source]:
+                        if namespace == "*":
+                            pagelist.append(page['title'])
+                        else:
+                            if page['ns'] in NAMESPACES:
+                                pagelist.append(page['title'])
+            
+            # https://www.mediawiki.org/wiki/API:Continue
+            if 'continue' in data:
+                params.update(data['continue'])
+            elif 'qpoffset' in data:
+                params.update(data['qpoffset'])
+            elif 'rccontinue' in data:
+                params.update(data['rccontinue'])
+            elif 'lecontinue' in data:
+                params.update(data['lecontinue'])
+            elif 'lhcontinue' in data:
+                params.update(data['lhcontinue'])
+            elif 'fucontinue' in data:
+                params.update(data['fucontinue'])
+            elif 'imcontinue' in data:
+                params.update(data['imcontinue'])
+            elif 'plcontinue' in data:
+                params.update(data['plcontinue'])
+            elif 'rdcontinue' in data:
+                params.update(data['rdcontinue'])
+            elif 'tlcontinue' in data:
+                params.update(data['tlcontinue'])
+            elif 'ticontinue' in data:
+                params.update(data['ticontinue'])
+            else:
+                break
+
+            # reducing request limit when total of pages gets closer to user provided limit
+            if limit is not None:
+                request_limit = (limit - len(pagelist)) if (limit - len(pagelist)) < 500 else 500
+                params = set_api_request_limit(pagelist_source, pagelist_target, params, request_limit)
+    except KeyboardInterrupt:
+        print("Execution interrupted by user input.")
+        if len(pagelist) > 0:
+            print(f"{len(pagelist)} pagenames were retrieved before interruption and saved successfully.")
+        else:
+            print(f"No pagenames were retrieved before interruption.")
+    except Exception as e:
+        print(f"An error has ocurred: {e}")
+        print(f"{len(pagelist)} pagenames were retrieved before error and saved successfully.")
     return pagelist
 
 def edit_pages(csrf_token: str, url: str, pagelist_path: str = None, substitution_path: str = None, append: str = None, prepend: str = None,
@@ -255,14 +305,6 @@ skip_if: str = None, skip_ifnot: str = None, delay: int = None, summary: str = N
                     substitution_list.append((match.group(1), match.group(2)))
 
     pagelist = utils.read_pagelist(pagelist_path)
-
-    total_page_count = len(pagelist)
-    page_saved_count = 0
-    page_skipped_count = 0
-    page_count = 0
-    page_error_count = 0
-    pages_with_error = []
-    print("Editing pages...")
     
     # https://www.mediawiki.org/wiki/API:Revisions
     getpage_params = {
@@ -289,77 +331,117 @@ skip_if: str = None, skip_ifnot: str = None, delay: int = None, summary: str = N
         'watchlist': "watch",
         'token': csrf_token
     }
+
+    total_page_count = len(pagelist)
+    page_saved_count = 0
+    page_skipped_count = 0
+    page_count = 0
+    page_error_count = 0
+    pages_with_error = []
+
+    print("Editing pages...")
     
-    for pagename in pagelist:
-        getpage_params['titles'] = pagename
-        sendpage_params['title'] = pagename
-        # navigating through redirects if redirect is found
-        while True:  
-            request = SESSION.get(url=url, params=getpage_params)
-            data = request.json()
-            if 'error' in data:
-                raise Exception(data['error'])
-
-            if 'missing' in data['query']['pages'][0]:
-                page_error_count += 1
-                pages_with_error.append((pagename, "Page doesn't exist."))
-                break
-            else:
-                latest_revision = data['query']['pages'][0]['revisions'][0]
-                page_content = latest_revision['slots']['main']['content']
-
-                # checking if content is redirect
-                redirect_search = re.search("#REDIRECT \[\[(.*?)\]\]", page_content)
-                if bool(redirect_search):
-                    getpage_params['titles'] = redirect_search.group(1)
-                    sendpage_params['title'] = redirect_search.group(1)
-                else:
-                    #if page_content contains "skip_if", skip page
-                    skip = bool(re.search(skip_if, page_content)) if skip_if is not None else False
-                    if not skip:
-                        # if page content doesn't contain "skip_ifnot", skip page
-                        skip = not bool(re.search(skip_ifnot, page_content)) if skip_ifnot is not None else False
-                        
-                    if skip:
-                        page_skipped_count += 1
+    try:
+        for pagename in pagelist:
+            getpage_params['titles'] = pagename
+            sendpage_params['title'] = pagename
+            # navigating through redirects if redirect is found
+            while True:
+                # retry when request timeout is reached 
+                for i in range(0, 3):
+                    try:
+                        request = SESSION.get(url=url, params=getpage_params)
+                    except requests.Timeout:
+                        print(f"Connection with API failed. Retrying. ({i+1} of 3)")
                     else:
-                        page_content_edited = page_content
-                        for substitution in substitution_list:
-                            page_content_edited = re.sub(substitution[0], substitution[1], page_content_edited)
-                        if append is not None:
-                            page_content_edited = append + "\n" + page_content_edited
-                        if prepend is not None:
-                            page_content_edited = page_content_edited + "\n" + prepend
+                        break
+                else:
+                    page_error_count += 1
+                    pages_with_error.append((pagename, "Request reached timeout while fetching page."))
+                    print(f"\nPage: {pagename}  Status: Error - Request reached timeout while fetching page.")
+                    
+                data = request.json()
+                if 'error' in data:
+                    raise Exception(data['error'])
 
-                        if page_content_edited == page_content:
+                if 'missing' in data['query']['pages'][0]:
+                    page_error_count += 1
+                    pages_with_error.append((pagename, "Page doesn't exist."))
+                    break
+                else:
+                    latest_revision = data['query']['pages'][0]['revisions'][0]
+                    page_content = latest_revision['slots']['main']['content']
+
+                    # checking if content is redirect
+                    redirect_search = re.search("#REDIRECT \[\[(.*?)\]\]", page_content)
+                    if bool(redirect_search):
+                        getpage_params['titles'] = redirect_search.group(1)
+                        sendpage_params['title'] = redirect_search.group(1)
+                    else:
+                        #if page_content contains "skip_if", skip page
+                        skip = bool(re.search(skip_if, page_content)) if skip_if is not None else False
+                        if not skip:
+                            # if page content doesn't contain "skip_ifnot", skip page
+                            skip = not bool(re.search(skip_ifnot, page_content)) if skip_ifnot is not None else False
+                            
+                        if skip:
                             page_skipped_count += 1
                         else:
-                            sendpage_params['text'] = page_content_edited
-                            sendpage_params['starttimestamp'] = data['curtimestamp']
-                            sendpage_params['basetimestamp'] = latest_revision['timestamp']
-                            sendpage_params['baserevid'] = latest_revision['revid']
-                            sendpage_params['contentformat'] = latest_revision['slots']['main']['contentformat']
-                            sendpage_params['contentmodel'] = latest_revision['slots']['main']['contentmodel']
-                            request = SESSION.post(url=url, data=sendpage_params)
-                            data = request.json()
-                            if("error" in data):
-                                page_error_count += 1
-                                pages_with_error.append((pagename, data['error']['info']))
-                                print(f"\nPage: {pagename}  Status: Error - {data['error']['info']}")
-                            else:
-                                print(f"\nPage: {pagename}  Status: {data['edit']['result']}")
-                            if delay is not None:
-                                time.sleep(delay)
-                            page_saved_count += 1
-                    #end else skip
-                    break
-                #end else redirect_search
-            #end else missing
-        #end while
-        page_count += 1
+                            page_content_edited = page_content
+                            for substitution in substitution_list:
+                                page_content_edited = re.sub(substitution[0], substitution[1], page_content_edited)
+                            if append is not None:
+                                page_content_edited = append + "\n" + page_content_edited
+                            if prepend is not None:
+                                page_content_edited = page_content_edited + "\n" + prepend
 
-        print(f"Edited: {page_saved_count}  Skipped: {page_skipped_count}  Errors: {page_error_count}  " + 
-              f"Remaining: {total_page_count - page_count}  Completed: {(page_count / len(pagelist) * 100):.2f}%")
+                            if page_content_edited == page_content:
+                                page_skipped_count += 1
+                            else:
+                                sendpage_params['text'] = page_content_edited
+                                sendpage_params['starttimestamp'] = data['curtimestamp']
+                                sendpage_params['basetimestamp'] = latest_revision['timestamp']
+                                sendpage_params['baserevid'] = latest_revision['revid']
+                                sendpage_params['contentformat'] = latest_revision['slots']['main']['contentformat']
+                                sendpage_params['contentmodel'] = latest_revision['slots']['main']['contentmodel']
+
+                                # retry when request timeout is reached 
+                                for i in range(0, 3):
+                                    try:
+                                        request = SESSION.post(url=url, data=sendpage_params)
+                                    except requests.Timeout:
+                                        print(f"Connection with API failed. Retrying. ({i+1} of 3)")
+                                    else:
+                                        break
+                                else:
+                                    page_error_count += 1
+                                    pages_with_error.append((pagename, "Request reached timeout while saving page. Check your connection and try again."))
+                                    print(f"\nPage: {pagename}  Status: Error - Request reached timeout while saving page. Check your connection and try again.")
+
+                                data = request.json()
+                                if("error" in data):
+                                    page_error_count += 1
+                                    pages_with_error.append((pagename, data['error']['info']))
+                                    print(f"\nPage: {pagename}  Status: Error - {data['error']['info']}")
+                                else:
+                                    print(f"\nPage: {pagename}  Status: {data['edit']['result']}")
+                                if delay is not None:
+                                    time.sleep(delay)
+                                page_saved_count += 1
+                        #end else skip
+                        break
+                    #end else redirect_search
+                #end else missing
+            #end while
+            page_count += 1
+
+            print(f"Edited: {page_saved_count}  Skipped: {page_skipped_count}  Errors: {page_error_count}  " + 
+                f"Remaining: {total_page_count - page_count}  Completed: {(page_count / len(pagelist) * 100):.2f}%")
+    except KeyboardInterrupt:
+        print("Execution interrupted by user input.")
+    except Exception as e:
+        print(f"Server returned error: {e}")
+
     pagelist = pagelist[page_count-1:]
     if pages_with_error:
         print("Pages with errors:")
@@ -367,6 +449,7 @@ skip_if: str = None, skip_ifnot: str = None, delay: int = None, summary: str = N
             pagelist.append(pagename)
             print(f"{pagename}:  Error: {error}")
     utils.write_pagelist(pagelist, pagelist_path, "w")
+    print("Pagelist updated successfully.")
 
 def create_pages(csrf_token: str, url: str, pagelist_path: str, content: str, delay: int = None, summary: str = None):
     # https://www.mediawiki.org/wiki/API:Edit
@@ -392,26 +475,43 @@ def create_pages(csrf_token: str, url: str, pagelist_path: str, content: str, de
     pages_with_error = []
 
     print("Creating pages...")
-    for pagename in pagelist:
-        sendpage_params['title'] = pagename
-        sendpage_params['text'] = content
 
-        request = SESSION.post(url=url, data=sendpage_params)
-        data = request.json()
+    try:
+        for pagename in pagelist:
+            sendpage_params['title'] = pagename
+            sendpage_params['text'] = content
 
-        if 'error' in data:
-            page_error_count += 1
-            pages_with_error.append((pagename, data['error']['info']))
-            print(f"\nPage: {pagename}  Status: Error - {data['error']['info']}")
-        else:
-            print(f"\nPage: {pagename}  Status: {data['edit']['result']}")
-            page_saved_count += 1
-        if delay is not None:
-            time.sleep(delay)
-        page_count += 1
-        print(f"Created: {page_saved_count}  Errors: {page_error_count}  " + 
-              f"Remaining: {total_page_count - page_count}  Completed: {(page_count / len(pagelist) * 100):.2f}%")
-    
+            # retry when request timeout is reached 
+            for i in range(0, 3):
+                try:
+                    request = SESSION.post(url=url, data=sendpage_params)
+                except requests.Timeout:
+                    print(f"Connection with API failed. Retrying. ({i+1} of 3)")
+                else:
+                    break
+            else:
+                page_error_count += 1
+                pages_with_error.append((pagename, "Request reached timeout while saving page. Check your connection and try again."))
+                print(f"\nPage: {pagename}  Status: Error - Request reached timeout while saving page. Check your connection and try again.")
+                
+            data = request.json()
+            if 'error' in data:
+                page_error_count += 1
+                pages_with_error.append((pagename, data['error']['info']))
+                print(f"\nPage: {pagename}  Status: Error - {data['error']['info']}")
+            else:
+                print(f"\nPage: {pagename}  Status: {data['edit']['result']}")
+                page_saved_count += 1
+            if delay is not None:
+                time.sleep(delay)
+            page_count += 1
+            print(f"Created: {page_saved_count}  Errors: {page_error_count}  " + 
+                f"Remaining: {total_page_count - page_count}  Completed: {(page_count / len(pagelist) * 100):.2f}%")
+    except KeyboardInterrupt:
+        print("Execution interrupted by user input.")
+    except Exception as e:
+        print(f"Server returned error: {e}")
+
     pagelist = pagelist[page_count-1:]
     if pages_with_error:
         print("Pages with errors:")
