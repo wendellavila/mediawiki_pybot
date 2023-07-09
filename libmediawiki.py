@@ -15,7 +15,7 @@ SESSION.request = functools.partial(SESSION.request, timeout=120)
 
 def get_token(credentials_path: str) -> str:
     credentials = utils.read_credentials(credentials_path)
-    if credentials['username'] == None or credentials['password'] == None or credentials['url'] == None:
+    if credentials['username'] is None or credentials['password'] is None or credentials['url'] is None:
         raise Exception("Unable to login: Saved credentials partially missing. Run 'mediawiki-pybot save' to save credentials.")
     else:
         CSRF_TOKEN = login(username=credentials['username'], password=credentials['password'],url=credentials['url'])
@@ -23,7 +23,7 @@ def get_token(credentials_path: str) -> str:
 
 def get_url(credentials_path: str) -> str:
     credentials = utils.read_credentials(credentials_path)
-    if credentials['url'] == None:
+    if credentials['url'] is None:
         raise Exception("Unable to login: No saved url. Run 'mediawiki-pybot save' to save credentials.")
     else: 
         return credentials['url']
@@ -200,7 +200,7 @@ def generate_pagelist(url: str, pagelist_source: str, pagelist_target: str, name
     params = set_api_request_limit(pagelist_source, pagelist_target, params, request_limit)
 
     pagelist = []
-    print("Getting pagelist...")
+    print("Generating pagelist...")
     try:
         while request_limit > 0:
 
@@ -284,7 +284,7 @@ def generate_pagelist(url: str, pagelist_source: str, pagelist_target: str, name
 
 def edit_pages(csrf_token: str, url: str, pagelist_path: str = None, substitution_path: str = None, append: str = None, prepend: str = None,
 skip_if: str = None, skip_ifnot: str = None, delay: int = None, summary: str = None):
-    if substitution_path == None and append == None and prepend == None:
+    if substitution_path is None and append is None and prepend is None:
         raise Exception("No modifications to be performed.")
 
     substitution_list = []
@@ -431,7 +431,7 @@ skip_if: str = None, skip_ifnot: str = None, delay: int = None, summary: str = N
     except KeyboardInterrupt:
         print("Execution interrupted by user input.")
     except Exception as e:
-        print(f"Server returned error: {e}")
+        print(f"API returned error: {e}")
 
     pagelist = pagelist[page_count-1:]
     if pages_with_error:
@@ -501,7 +501,7 @@ def create_pages(csrf_token: str, url: str, pagelist_path: str, content: str, de
     except KeyboardInterrupt:
         print("Execution interrupted by user input.")
     except Exception as e:
-        print(f"Server returned error: {e}")
+        print(f"API returned error: {e}")
 
     pagelist = pagelist[page_count-1:]
     if pages_with_error:
