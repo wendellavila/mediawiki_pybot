@@ -26,7 +26,7 @@ help="generates list of pages to be edited. for options see 'mediawiki-pybot pag
 pagelist_choices = ['category','specialpage','linkshere','transcludedin','fileusage','images',
     'links','redirects','templates', 'usercontribs', 'newfiles', 'newpages']
 parser_pagelist.add_argument(
-    '-s', '--source', action='store', choices=pagelist_choices, metavar='SOURCE', required=True,
+    '-s', '--source', action='store', choices=pagelist_choices, metavar='SOURCE', required=True, type=str.lower,
     help="Type of source for pagelist generation. " +
     "allowed values: {category, specialpage, linkshere, transcludedin, fileusage, images, links, redirects, templates, usercontribs} " + 
     "category: Get pages pertaining to a category. " +
@@ -41,8 +41,8 @@ parser_pagelist.add_argument(
     "usercontribs: Get all contributions from a given user. ")
 parser_pagelist.add_argument('-t', '--target', action='store', required=True,
     help="argument for pagelist generation (page name, category name, etc.)")
-parser_pagelist.add_argument('--no-reset', action='store_true',
-    help="use this flag to increment an existing pagelist instead of resetting it")
+parser_pagelist.add_argument('--append', action='store',
+    help="if false, pagelist will be overwritten every time the command is run. Defaults to true.", type=bool, default=True)
 parser_pagelist.add_argument('--save-path', action='store',
     help="save pagelist to a text file in a custom location")
 parser_pagelist.add_argument('-l','--limit', action='store',
@@ -94,7 +94,7 @@ else:
             print("Credentials saved successfully.")
         elif args.operation == "pagelist":
             PAGELIST_PATH = args.save_path if args.save_path is not None else DEFAULT_PATHS['pagelist']
-            PAGELIST_MODE = "a" if args.no_reset else "w"
+            PAGELIST_MODE = "a" if args.append else "w"
             URL = libmediawiki.get_url(DEFAULT_PATHS['credentials'])
             pagelist = libmediawiki.generate_pagelist(url=URL, pagelist_source=args.source, pagelist_target=args.target,
             namespace=args.namespace, limit=args.limit)

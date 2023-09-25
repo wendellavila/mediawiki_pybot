@@ -6,8 +6,7 @@ from typing import List
 def read_pagelist(pagelist_path: str) -> List[str]:
     pagelist = []
     with open(pagelist_path, "r") as pagelist_file:
-        for line in pagelist_file.readlines():
-            pagelist.append(line)
+        pagelist = [line[:-1] for line in pagelist_file]
     return pagelist
 
 def write_pagelist(pagelist: List[str], pagelist_path: str, pagelist_mode: str):
