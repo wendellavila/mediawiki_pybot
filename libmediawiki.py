@@ -352,7 +352,6 @@ skip_if: str = None, skip_ifnot: str = None, delay: int = None, summary: str = N
                     print(f"\nPage: {pagename}  Status: Error - Request reached timeout while fetching page.")
                     
                 data = request.json()
-                print(data)
                 if 'error' in data:
                     raise Exception(data['error'])
 
