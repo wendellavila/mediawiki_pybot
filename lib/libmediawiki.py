@@ -1,14 +1,12 @@
 # standard library imports
 import functools
 import os
-import json
 import re
-import requests
 import time
-from typing import List
-
+# dependencies
+import requests
 # custom modules
-import utils
+import lib.utils as utils
 
 SESSION = requests.Session()
 SESSION.request = functools.partial(SESSION.request, timeout=120)
@@ -143,7 +141,7 @@ def set_api_request_limit(pagelist_source: str, pagelist_target: str, params: di
 
     return params
     
-def generate_pagelist(url: str, pagelist_source: str, pagelist_target: str, namespace: str = "*", limit: int = None) -> List[str]:
+def generate_pagelist(url: str, pagelist_source: str, pagelist_target: str, namespace: str = "*", limit: int = None) -> list[str]:
     if url is None:
         raise Exception("Unable to get pages: url is missing from saved credentials. " + 
         "Run 'mediawiki-pybot save' to save credentials.")

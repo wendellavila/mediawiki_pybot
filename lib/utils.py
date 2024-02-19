@@ -1,15 +1,14 @@
 # standard library imports
 import json
 import os
-from typing import List
 
-def read_pagelist(pagelist_path: str) -> List[str]:
+def read_pagelist(pagelist_path: str) -> list[str]:
     pagelist = []
     with open(pagelist_path, "r") as pagelist_file:
         pagelist = [line[:-1] for line in pagelist_file]
     return pagelist
 
-def write_pagelist(pagelist: List[str], pagelist_path: str, pagelist_mode: str):
+def write_pagelist(pagelist: list[str], pagelist_path: str, pagelist_mode: str):
     os.makedirs(os.path.dirname(pagelist_path), exist_ok=True)
     with open(pagelist_path, pagelist_mode) as pagelist_file:
         for pagename in pagelist:
