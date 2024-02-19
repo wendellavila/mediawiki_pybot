@@ -8,7 +8,7 @@ from lib import utils
 
 parser = argparse.ArgumentParser(
     prog='mediawiki-pybot',
-    description='Command-line utility for performing mass edits on wikis using the MediaWiki API. Written with Python.')
+    description='Command-line utility for performing mass edits on wikis using the MediaWiki API. Made with Python.')
 
 subparsers = parser.add_subparsers(metavar='operation', help="allowed values: {save, pagelist, edit, create}", dest='operation')
 

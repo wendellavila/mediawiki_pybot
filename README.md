@@ -1,9 +1,9 @@
 # MediaWiki-Pybot
-Command-line utility for performing mass edits on wikis using the MediaWiki API. Written with Python, inspired by AutoWikiBrowser.
+Command-line utility for performing mass edits on wikis using the MediaWiki API. Made with Python, inspired by AutoWikiBrowser.
 
 ## Dependencies
-* Python >= 3.9
-* requests
+* [Python](https://www.python.org/downloads/) (>= 3.9)
+* [requests](https://pypi.org/project/requests/)
 
 ## How to run
 ### Clone repository
@@ -172,7 +172,6 @@ Generating a list of pages to edit
 python3 mediawiki-pybot.py pagelist --source category --target Bands
 ```
 Editing pages
-
 ```sh
 # Using the substitution patterns configured in substitution_example.txt and appending a category to the page
 python3 mediawiki-pybot.py edit --substitution substitution_example.txt --append "[[Category:My Edits]]" --summary "Editing pages with MediaWiki-Pybot"
