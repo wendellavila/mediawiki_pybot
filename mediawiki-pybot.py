@@ -47,7 +47,7 @@ parser_pagelist.add_argument('--save-path', action='store',
 parser_pagelist.add_argument('-l','--limit', action='store',
     help="max number of pages to be returned", type=int)
 parser_pagelist.add_argument('-n','--namespace', action='store',
-    help="only return pages in certain namespaces. format= \"0|1|2|3\"")
+    help="only return pages in certain namespaces. Use comma separated numbers: \"0,1,2,3\"")
 
 
 parser_edit = subparsers.add_parser('edit',
