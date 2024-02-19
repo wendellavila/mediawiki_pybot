@@ -156,7 +156,9 @@ def generate_pagelist(url: str, pagelist_source: str, pagelist_target: str, name
     QUERY_PROPS = ("linkshere", "fileusage", "images","links", "redirects", "templates", "transcludedin")
 
     #to do: subcategories, recursive whatlinks here, recursive transcludedin
-    if pagelist_source == 'category':
+    if pagelist_source == 'manual':
+        return pagelist_target.split(",")
+    elif pagelist_source == 'category':
         # https://www.mediawiki.org/wiki/API:Categorymembers
         pagelist_target = pagelist_target[9:] if pagelist_target[0:9].lower() == "category:" else pagelist_target
         params['list'] = "categorymembers"

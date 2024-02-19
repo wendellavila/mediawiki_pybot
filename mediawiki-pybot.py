@@ -19,21 +19,24 @@ parser_save.add_argument('--url', action='store', help="mediawiki api endpoint u
 
 parser_pagelist = subparsers.add_parser('pagelist',
 help="generates list of pages to be edited. for options see 'mediawiki-pybot pagelist --help'.")
-pagelist_choices = ['category','specialpage','linkshere','transcludedin','fileusage','images',
-    'links','redirects','templates', 'usercontribs', 'newfiles', 'newpages']
+pagelist_choices = ['category','fileusage','images','links','linkshere','manual','newfiles','newpages',
+                    'redirects','specialpage','templates','transcludedin','usercontribs']
 parser_pagelist.add_argument(
     '-s', '--source', action='store', choices=pagelist_choices, metavar='SOURCE', required=True, type=str.lower,
     help="Type of source for pagelist generation. " +
-    "allowed values: {category, specialpage, linkshere, transcludedin, fileusage, images, links, redirects, templates, usercontribs} " + 
+    "allowed values: {category, fileusage, images, links, linkshere, manual, newfiles, newpages, redirects, specialpage, templates, transcludedin, usercontribs} " +
     "category: Get pages pertaining to a category. " +
-    "specialpage: Uses a page in the Special: namespace to get a list of pages. " +
-    "linkshere: WhatLinksHere - Get pages linking to a given page. " +
-    "transcludedin: WhatTranscludesPage - Get pages that transclude a given page. " +
     "fileusage: Get pages currently using a given image or video. " +
     "images: Get images used in a given page. " +
     "links: Get pages linked from a given page. " +
+    "linkshere: WhatLinksHere - Get pages linking to a given page. " +
+    "manual: Add pages to the list manually by providing a list of comma separated pagenames. " +
+    "newfiles: Get the most recent files uploaded to a wiki. " +
+    "newpages: Get the most recent pages created in a wiki. " +
     "redirects: Get pages that redirect to a given page. " +
+    "specialpage: Uses a page in the Special: namespace to get a list of pages. " +
     "templates: Get templates in use in a given page. " +
+    "transcludedin: WhatTranscludesPage - Get pages that transclude a given page. " +
     "usercontribs: Get all contributions from a given user. ")
 parser_pagelist.add_argument('-t', '--target', action='store', required=True,
     help="argument for pagelist generation (page name, category name, etc.)")
