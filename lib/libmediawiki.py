@@ -142,18 +142,20 @@ def set_api_request_limit(pagelist_source: str, pagelist_target: str, params: di
     return params
     
 def generate_pagelist(url: str, pagelist_source: str, pagelist_target: str, namespace: str = "*", limit: int = None) -> list[str]:
-    # namespace format validation
-    # Replacing any number separator with "|" (format required by API is "-2|-1|0|1|2|...|n")
-    namespace = re.sub(r"((?!-?\d).)+", "|", namespace)
-    # Removing trailing and leading "|"
-    namespace = re.sub(r"^\||\|$", "", namespace)
-    # Turning errors like "-1-2|3" into "-1|-2|3"
-    namespace = re.sub(r"(\d)-(\d)", r"\1|-\2", namespace)
-
-    print(namespace)
     if url is None:
         raise Exception("Unable to get pages: url is missing from saved credentials. " + 
         "Run 'mediawiki-pybot save' to save credentials.")
+    if namespace is None:
+        namespace = '*'
+    if namespace != '*':
+        # namespace format validation
+        # Replacing any number separator with "|" (format required by API is "-2|-1|0|1|2|...|n")
+        namespace = re.sub(r"((?!-?\d).)+", "|", namespace)
+        # Removing trailing and leading "|"
+        namespace = re.sub(r"^\||\|$", "", namespace)
+        # Turning errors like "-1-2|3" into "-1|-2|3"
+        namespace = re.sub(r"(\d)-(\d)", r"\1|-\2", namespace)
+    
     pagelist_source = pagelist_source.lower()
     pagelist = []
     params = {

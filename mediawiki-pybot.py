@@ -98,7 +98,7 @@ else:
             pagelist = libmediawiki.generate_pagelist(url=URL, pagelist_source=args.source, pagelist_target=args.target,
             namespace=args.namespace, limit=args.limit)
             if len(pagelist) == 0:
-                print("No pages found with given source and target.")
+                print("No pages found with given parameters.")
             else:
                 utils.write_pagelist(pagelist, PAGELIST_PATH, PAGELIST_MODE)
                 print(f"{args.source.capitalize()}:{args.target} - {len(pagelist)} pages added to pagelist.")
