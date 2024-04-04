@@ -1,4 +1,4 @@
-# This is an example of a substitution list that can be used by Mediawiki-Pybot. It can contain both text and RegEx substitutions.
+# This is an example of a substitution list that can be used by mediawiki_pybot. It can contain both text and RegEx substitutions.
 # Use Python RegEx ("re" module) for writing patterns.
 # (https://docs.python.org/3/library/re.html#regular-expression-syntax)
 

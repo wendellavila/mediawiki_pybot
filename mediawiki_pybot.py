@@ -7,18 +7,18 @@ from lib import libmediawiki
 from lib import utils
 
 parser = argparse.ArgumentParser(
-    prog='mediawiki-pybot',
+    prog='mediawiki_pybot',
     description='Command-line utility for performing mass edits on wikis using the MediaWiki API. Made with Python.')
 
 subparsers = parser.add_subparsers(metavar='operation', help="allowed values: {save, pagelist, edit, create}", dest='operation')
 
-parser_save = subparsers.add_parser('save', help="stores login credentials locally. for options see 'mediawiki-pybot save --help'.")
+parser_save = subparsers.add_parser('save', help="stores login credentials locally. for options see 'mediawiki_pybot save --help'.")
 parser_save.add_argument('-u', '--username', action='store', help="bot account username")
 parser_save.add_argument('-p', '--password', action='store', help="bot password (obtain credentials via Special:BotPasswords)")
 parser_save.add_argument('--url', action='store', help="mediawiki api endpoint url")
 
 parser_pagelist = subparsers.add_parser('pagelist',
-help="generates list of pages to be edited. for options see 'mediawiki-pybot pagelist --help'.")
+help="generates list of pages to be edited. for options see 'mediawiki_pybot pagelist --help'.")
 pagelist_choices = ['category','fileusage','images','links','linkshere','manual','newfiles','newpages',
                     'redirects','specialpage','templates','transcludedin','usercontribs']
 parser_pagelist.add_argument(
@@ -51,7 +51,7 @@ parser_pagelist.add_argument('-n','--namespace', action='store',
 
 
 parser_edit = subparsers.add_parser('edit',
-    help="perform mass edits on pages from a pagelist. for options see 'mediawiki-pybot edit --help'.")
+    help="perform mass edits on pages from a pagelist. for options see 'mediawiki_pybot edit --help'.")
 parser_edit.add_argument('-s', '--substitution', action='store',
     help="path to a text file containing a list of text/regex substitutions to be applied when editing pages. See substitution_example.txt for usage.")
 parser_edit.add_argument('-a', '--append', action='store', help="string to be appended to pages when editing")
@@ -62,7 +62,7 @@ parser_edit.add_argument('--skip-if', action='store', help="pages that contain g
 parser_edit.add_argument('--skip-ifnot', action='store', help="pages that doesn't contain given string or regex won't be edited")
 parser_edit.add_argument('-d', '--delay', action='store', help="delay between each edit, in seconds", type=int)
 
-parser_create = subparsers.add_parser('create', help="mass create pages. for options see 'mediawiki-pybot create --help'.")
+parser_create = subparsers.add_parser('create', help="mass create pages. for options see 'mediawiki_pybot create --help'.")
 parser_create.add_argument('-c', '--content', action='store', help="content to be added to each page", required=True)
 parser_create.add_argument('-p', '--pagelist-path', action='store', help="loads a pagelist file from a custom location")
 parser_create.add_argument('-s', '--summary', action='store', help="edit summary")

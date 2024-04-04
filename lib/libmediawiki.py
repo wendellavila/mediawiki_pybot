@@ -14,7 +14,7 @@ SESSION.request = functools.partial(SESSION.request, timeout=120)
 def get_token(credentials_path: str) -> str:
     credentials = utils.read_credentials(credentials_path)
     if credentials['username'] is None or credentials['password'] is None or credentials['url'] is None:
-        raise Exception("Unable to login: Saved credentials partially missing. Run 'mediawiki-pybot save' to save credentials.")
+        raise Exception("Unable to login: Saved credentials partially missing. Run 'mediawiki_pybot save' to save credentials.")
     else:
         CSRF_TOKEN = login(username=credentials['username'], password=credentials['password'],url=credentials['url'])
         return CSRF_TOKEN
@@ -22,7 +22,7 @@ def get_token(credentials_path: str) -> str:
 def get_url(credentials_path: str) -> str:
     credentials = utils.read_credentials(credentials_path)
     if credentials['url'] is None:
-        raise Exception("Unable to login: No saved url. Run 'mediawiki-pybot save' to save credentials.")
+        raise Exception("Unable to login: No saved url. Run 'mediawiki_pybot save' to save credentials.")
     else: 
         return credentials['url']
 
@@ -83,7 +83,7 @@ def login(username: str, password: str, url:str) -> str:
     if(data['login']['result'] == 'Success'):
         print(username + ": Login successful.")
     else:
-        raise Exception("Login failed: Wrong credentials. Check your credentials and run 'mediawiki-pybot save' again.")
+        raise Exception("Login failed: Wrong credentials. Check your credentials and run 'mediawiki_pybot save' again.")
     
     # Step 3: GET request to fetch CSRF token
     CSRF_PARAMS = {
@@ -144,7 +144,7 @@ def set_api_request_limit(pagelist_source: str, pagelist_target: str, params: di
 def generate_pagelist(url: str, pagelist_source: str, pagelist_target: str, namespace: str = "*", limit: int = None) -> list[str]:
     if url is None:
         raise Exception("Unable to get pages: url is missing from saved credentials. " + 
-        "Run 'mediawiki-pybot save' to save credentials.")
+        "Run 'mediawiki_pybot save' to save credentials.")
     if namespace is None:
         namespace = '*'
     if namespace != '*':
