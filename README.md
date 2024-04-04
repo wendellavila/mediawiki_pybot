@@ -1,4 +1,4 @@
-# MediaWiki-Pybot
+# mediawiki_pybot
 Command-line utility for performing mass edits on wikis using the MediaWiki API. Made with Python, inspired by AutoWikiBrowser.
 
 ## Dependencies
@@ -8,46 +8,46 @@ Command-line utility for performing mass edits on wikis using the MediaWiki API.
 ## How to run
 ### Clone repository
 ```sh
-git clone git@github.com:wendellavila/MediaWiki-Pybot.git
+git clone git@github.com:wendellavila/mediawiki_pybot.git
 # or
-git clone https://github.com/wendellavila/MediaWiki-Pybot.git
+git clone https://github.com/wendellavila//mediawiki_pybot.git
 ```
 
 ### cd into repository
 ```sh
-cd MediaWiki-Pybot
+cd mediawiki_pybot
 ```
 ### Run script with python3
 ```sh
-python3 mediawiki-pybot.sh
+python3 mediawiki_pybot.py
 ```
 ### Or run with sh
 ```sh
 # make file executable
-chmod +x mediawiki-pybot.sh
+chmod +x mediawiki_pybot.sh
 # run
-./mediawiki-pybot.sh
+./mediawiki_pybot.sh
 ```
 ## Usage
 ### See --help for usage
 ```sh
-python3 mediawiki-pybot.sh --help
+python3 mediawiki_pybot.sh --help
 ```
 ```
-usage: mediawiki-pybot [-h] operation ...
+usage: mediawiki_pybot [-h] operation ...
 
 Command-line utility for performing mass edits on wikis using the MediaWiki API.
 Written with Python.
 
 positional arguments:
   operation   allowed values: {save, pagelist, edit, create}
-    save      stores login credentials locally. for options see 'mediawiki-pybot
+    save      stores login credentials locally. for options see 'mediawiki_pybot
               save --help'.
-    pagelist  generates list of pages to be edited. for options see 'mediawiki-
+    pagelist  generates list of pages to be edited. for options see 'mediawiki_
               pybot pagelist --help'.
     edit      perform mass edits on pages from a pagelist. for options see
-              'mediawiki-pybot edit --help'.
-    create    mass create pages. for options see 'mediawiki-pybot create
+              'mediawiki_pybot edit --help'.
+    create    mass create pages. for options see 'mediawiki_pybot create
               --help'.
 
 options:
@@ -55,10 +55,10 @@ options:
 ```
 ### save
 ```sh
-python3 mediawiki-pybot.sh save --help
+python3 mediawiki_pybot.sh save --help
 ```
 ```
-usage: mediawiki-pybot save [-h] [-u USERNAME] [-p PASSWORD] [--url URL]
+usage: mediawiki_pybot save [-h] [-u USERNAME] [-p PASSWORD] [--url URL]
 
 options:
   -h, --help            show this help message and exit
@@ -71,10 +71,10 @@ options:
 ```
 ### pagelist
 ```sh
-python3 mediawiki-pybot.sh pagelist --help
+python3 mediawiki_pybot.sh pagelist --help
 ```
 ```
-usage: mediawiki-pybot pagelist [-h] -s SOURCE -t TARGET [--clear]
+usage: mediawiki_pybot pagelist [-h] -s SOURCE -t TARGET [--clear]
                                 [--save-path SAVE_PATH] [-l LIMIT]
                                 [-n NAMESPACE]
 
@@ -110,10 +110,10 @@ options:
 ```
 ### edit
 ```sh
-python3 mediawiki-pybot.sh edit --help
+python3 mediawiki_pybot.sh edit --help
 ```
 ```
-usage: mediawiki-pybot edit [-h] [-s SUBSTITUTION] [-a APPEND] [-p PREPEND]
+usage: mediawiki_pybot edit [-h] [-s SUBSTITUTION] [-a APPEND] [-p PREPEND]
                             [--summary SUMMARY] [--pagelist-path PAGELIST_PATH]
                             [--skip-if SKIP_IF] [--skip-ifnot SKIP_IFNOT]
                             [-d DELAY]
@@ -140,10 +140,10 @@ options:
 ```
 ### create
 ```sh
-python3 mediawiki-pybot.sh create --help
+python3 mediawiki_pybot.sh create --help
 ```
 ```
-usage: mediawiki-pybot create [-h] -c CONTENT [-p PAGELIST_PATH] [-s SUMMARY] [-d DELAY]
+usage: mediawiki_pybot create [-h] -c CONTENT [-p PAGELIST_PATH] [-s SUMMARY] [-d DELAY]
 
 options:
   -h, --help            show this help message and exit
@@ -163,28 +163,28 @@ First, make sure you have a bot account with permission to edit in the desired w
 You can get your bot username and password by going to Special:BotPasswords in the wiki you're editing.<br> For more information on bot accounts and bot passwords, see: [Help:Bots on FANDOM Community Central](https://community.fandom.com/wiki/Help:Bots).<br>
 Then run:
 ```sh
-python3 mediawiki-pybot.py save --username myusername --password mypassword --url https://mywiki.fandom.com/api.php
+python3 mediawiki_pybot.py save --username myusername --password mypassword --url https://mywiki.fandom.com/api.php
 ```
 ### Editing pages
 Generating a list of pages to edit
 ```sh
 # Getting all pages in Category:Bands
-python3 mediawiki-pybot.py pagelist --source category --target Bands
+python3 mediawiki_pybot.py pagelist --source category --target Bands
 ```
 Editing pages
 ```sh
 # Using the substitution patterns configured in substitution_example.txt and appending a category to the page
-python3 mediawiki-pybot.py edit --substitution substitution_example.txt --append "[[Category:My Edits]]" --summary "Editing pages with MediaWiki-Pybot"
+python3 mediawiki_pybot.py edit --substitution substitution_example.txt --append "[[Category:My Edits]]" --summary "Editing pages with mediawiki_pybot"
 ```
 ### Creating pages
 Generating a list of pages to create
 ```sh
 # Getting all pages in Special:WantedCategories
-python3 mediawiki-pybot.py pagelist --source specialpage --target WantedCategories
+python3 mediawiki_pybot.py pagelist --source specialpage --target WantedCategories
 ```
 Creating pages
 ```sh
 # Creating pages with wikitext content
-python3 mediawiki-pybot.py create --content "==Description==
+python3 mediawiki_pybot.py create --content "==Description==
 This is a category page." --summary "Creating pages with MediaWiki Pybot"
 ```
