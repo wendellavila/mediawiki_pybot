@@ -110,7 +110,9 @@ def login(username: str, password: str, url:str) -> str:
 
 def set_api_request_limit(pagelist_source: str, pagelist_target: str, params: dict, limit: int):
     # max limit per request is 500
-    QUERY_PROPS = ("linkshere", "fileusage", "images","links", "redirects", "templates", "transcludedin")
+    QUERY_PROPS = (
+        "linkshere", "fileusage", "images","links",
+        "redirects", "templates", "transcludedin", "search")
 
     if pagelist_source == 'category':
         params['cmlimit'] = limit
@@ -138,6 +140,8 @@ def set_api_request_limit(pagelist_source: str, pagelist_target: str, params: di
             params['tllimit'] = limit
         elif pagelist_source == 'transcludedin':
             params['tilimit'] = limit
+        elif pagelist_source == 'search':
+            params['srlimit'] = limit
 
     return params
     
@@ -164,7 +168,9 @@ def generate_pagelist(url: str, pagelist_source: str, pagelist_target: str, name
         'formatversion': 2
     }
     # https://www.mediawiki.org/wiki/API:Properties
-    QUERY_PROPS = ("linkshere", "fileusage", "images","links", "redirects", "templates", "transcludedin")
+    QUERY_PROPS = (
+        "linkshere", "fileusage", "images","links", "redirects",
+        "templates", "transcludedin", "search")
 
     #to do: subcategories, recursive whatlinks here, recursive transcludedin
     if pagelist_source == 'manual':
@@ -199,6 +205,9 @@ def generate_pagelist(url: str, pagelist_source: str, pagelist_target: str, name
         else:
             params['list'] = "querypage"
             params['qppage'] = pagelist_target
+    elif pagelist_source == 'search':
+        params['list'] = "search"
+        params['srsearch'] = pagelist_target
     elif pagelist_source in QUERY_PROPS:
         # https://www.mediawiki.org/wiki/API:Properties
         params['titles'] = pagelist_target
@@ -232,8 +241,8 @@ def generate_pagelist(url: str, pagelist_source: str, pagelist_target: str, name
             
             if pagelist_source == 'category':
                 pagelist += [page['title'] for page in data['query']['categorymembers']]
-            elif pagelist_source == 'usercontribs':
-                pagelist += [page['title'] for page in data['query']['usercontribs']]
+            elif pagelist_source in ['usercontribs', 'search']:
+                pagelist += [page['title'] for page in data['query'][pagelist_source]]
             elif pagelist_source == 'specialpage':
                 if pagelist_target.lower() == 'newfiles' or pagelist_target.lower() == 'newimages':
                     pagelist += [page['title'] for page in data['query']['logevents']]
@@ -255,28 +264,28 @@ def generate_pagelist(url: str, pagelist_source: str, pagelist_target: str, name
             # https://www.mediawiki.org/wiki/API:Continue
             if 'continue' in data:
                 params.update(data['continue'])
-            elif 'qpoffset' in data:
+            if 'qpoffset' in data:
                 params.update(data['qpoffset'])
-            elif 'rccontinue' in data:
+            if 'sroffset' in data:
+                params.update(data['sroffset'])
+            if 'rccontinue' in data:
                 params.update(data['rccontinue'])
-            elif 'lecontinue' in data:
+            if 'lecontinue' in data:
                 params.update(data['lecontinue'])
-            elif 'lhcontinue' in data:
+            if 'lhcontinue' in data:
                 params.update(data['lhcontinue'])
-            elif 'fucontinue' in data:
+            if 'fucontinue' in data:
                 params.update(data['fucontinue'])
-            elif 'imcontinue' in data:
+            if 'imcontinue' in data:
                 params.update(data['imcontinue'])
-            elif 'plcontinue' in data:
+            if 'plcontinue' in data:
                 params.update(data['plcontinue'])
-            elif 'rdcontinue' in data:
+            if 'rdcontinue' in data:
                 params.update(data['rdcontinue'])
-            elif 'tlcontinue' in data:
+            if 'tlcontinue' in data:
                 params.update(data['tlcontinue'])
-            elif 'ticontinue' in data:
+            if 'ticontinue' in data:
                 params.update(data['ticontinue'])
-            else:
-                break
 
             # reducing request limit when total of pages gets closer to user provided limit
             if limit is not None:
@@ -375,7 +384,7 @@ skip_if: str = None, skip_ifnot: str = None, delay: int = None, summary: str = N
                     page_content = latest_revision['slots']['main']['content']
 
                     # checking if content is redirect
-                    redirect_search = re.search("#REDIRECT \[\[(.*?)\]\]", page_content)
+                    redirect_search = re.search(r"#REDIRECT \[\[(.*?)\]\]", page_content)
                     if bool(redirect_search):
                         getpage_params['titles'] = redirect_search.group(1)
                         sendpage_params['title'] = redirect_search.group(1)

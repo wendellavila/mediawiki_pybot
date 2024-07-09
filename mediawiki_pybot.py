@@ -20,11 +20,11 @@ parser_save.add_argument('--url', action='store', help="mediawiki api endpoint u
 parser_pagelist = subparsers.add_parser('pagelist',
 help="generates list of pages to be edited. for options see 'mediawiki_pybot pagelist --help'.")
 pagelist_choices = ['category','fileusage','images','links','linkshere','manual','newfiles','newpages',
-                    'redirects','specialpage','templates','transcludedin','usercontribs']
+                    'redirects','specialpage','templates','transcludedin','usercontribs', 'search']
 parser_pagelist.add_argument(
     '-s', '--source', action='store', choices=pagelist_choices, metavar='SOURCE', required=True, type=str.lower,
     help="Type of source for pagelist generation. " +
-    "allowed values: {category, fileusage, images, links, linkshere, manual, newfiles, newpages, redirects, specialpage, templates, transcludedin, usercontribs} " +
+    "allowed values: {category, fileusage, images, links, linkshere, manual, newfiles, newpages, redirects, specialpage, templates, transcludedin, usercontribs, search} " +
     "category: Get pages pertaining to a category. " +
     "fileusage: Get pages currently using a given image or video. " +
     "images: Get images used in a given page. " +
@@ -37,7 +37,8 @@ parser_pagelist.add_argument(
     "specialpage: Uses a page in the Special: namespace to get a list of pages. " +
     "templates: Get templates in use in a given page. " +
     "transcludedin: WhatTranscludesPage - Get pages that transclude a given page. " +
-    "usercontribs: Get all contributions from a given user. ")
+    "usercontribs: Get all contributions from a given user. " +
+    "search: Performs a textual search.")
 parser_pagelist.add_argument('-t', '--target', action='store', required=True,
     help="argument for pagelist generation (page name, category name, etc.)")
 parser_pagelist.add_argument('--clear', action='store_true',
