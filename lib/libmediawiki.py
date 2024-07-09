@@ -262,30 +262,31 @@ def generate_pagelist(url: str, pagelist_source: str, pagelist_target: str, name
                                 pagelist.append(page['title'])
             
             # https://www.mediawiki.org/wiki/API:Continue
-            if 'continue' in data:
-                params.update(data['continue'])
-            if 'qpoffset' in data:
-                params.update(data['qpoffset'])
-            if 'sroffset' in data:
-                params.update(data['sroffset'])
-            if 'rccontinue' in data:
-                params.update(data['rccontinue'])
-            if 'lecontinue' in data:
-                params.update(data['lecontinue'])
-            if 'lhcontinue' in data:
-                params.update(data['lhcontinue'])
-            if 'fucontinue' in data:
-                params.update(data['fucontinue'])
-            if 'imcontinue' in data:
-                params.update(data['imcontinue'])
-            if 'plcontinue' in data:
-                params.update(data['plcontinue'])
-            if 'rdcontinue' in data:
-                params.update(data['rdcontinue'])
-            if 'tlcontinue' in data:
-                params.update(data['tlcontinue'])
-            if 'ticontinue' in data:
-                params.update(data['ticontinue'])
+
+            CONTINUE_PARAMS = (
+                'qpoffset',
+                'sroffset',
+                'rccontinue',
+                'lecontinue',
+                'lhcontinue',
+                'fucontinue',
+                'imcontinue',
+                'plcontinue',
+                'rdcontinue',
+                'tlcontinue',
+                'ticontinue',
+                'continue'
+            )
+
+            hasContinue = False
+            for param in CONTINUE_PARAMS:
+                if param in data:
+                    hasContinue = True
+                    params.update(data[param])
+                    break
+
+            if not hasContinue:
+                break
 
             # reducing request limit when total of pages gets closer to user provided limit
             if limit is not None:
